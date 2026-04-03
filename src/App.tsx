@@ -136,6 +136,8 @@ export default function App() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showBlimpHint, setShowBlimpHint] = useState(() => localStorage.getItem('hide-blimp-hint') !== 'true');
+  const [secretMode, setSecretMode] = useState(() => localStorage.getItem('secret-mode') === 'true');
+  const [titleClicks, setTitleClicks] = useState(0);
 
   const catOutputRef = useRef<HTMLDivElement>(null);
 
@@ -306,6 +308,17 @@ export default function App() {
     hideHint();
   };
 
+  const handleTitleClick = () => {
+    if (secretMode) return;
+    const newClicks = titleClicks + 1;
+    setTitleClicks(newClicks);
+    if (newClicks >= 5) {
+      setSecretMode(true);
+      localStorage.setItem('secret-mode', 'true');
+      setIsSnowEnabled(true);
+    }
+  };
+
   return (
     <div 
       className={`min-h-screen relative overflow-x-hidden pb-20 transition-colors duration-500`}
@@ -329,21 +342,28 @@ export default function App() {
       {/* Header */}
       <header className={`py-12 px-5 text-center transition-colors duration-500`} style={{ backgroundColor: 'var(--surface)' }}>
         <div className="flex items-center justify-center gap-5 mb-8 relative">
-          <motion.img
-            whileHover={{ scale: 1.1, rotate: -5 }}
-            whileTap={{ scale: 0.9 }}
-            src={ALT_IMAGES[leftImgIndex]}
-            alt="Cat Blimp Left"
-            className="w-20 h-20 cursor-pointer object-contain relative z-10"
-            onClick={cycleLeftImg}
-          />
+          {secretMode && (
+            <motion.img
+              whileHover={{ scale: 1.1, rotate: -5 }}
+              whileTap={{ scale: 0.9 }}
+              src={ALT_IMAGES[leftImgIndex]}
+              alt="Cat Blimp Left"
+              className="w-20 h-20 cursor-pointer object-contain relative z-10"
+              onClick={cycleLeftImg}
+            />
+          )}
           <div className="relative">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight drop-shadow-lg relative z-10" style={{ color: 'var(--accent)' }}>
-              Клан Насрано
+            <h1 
+              className="text-4xl md:text-6xl font-bold tracking-tight drop-shadow-lg relative z-10 cursor-pointer select-none transition-all duration-500" 
+              style={{ color: 'var(--accent)' }}
+              onClick={handleTitleClick}
+              title={!secretMode ? "Кликни меня 5 раз..." : ""}
+            >
+              {secretMode ? 'Клан Насрано' : 'Генератор Котиков'}
             </h1>
             
             <AnimatePresence>
-              {showBlimpHint && (
+              {secretMode && showBlimpHint && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -357,14 +377,16 @@ export default function App() {
               )}
             </AnimatePresence>
           </div>
-          <motion.img
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            whileTap={{ scale: 0.9 }}
-            src={ALT_IMAGES[rightImgIndex]}
-            alt="Cat Blimp Right"
-            className="w-20 h-20 cursor-pointer object-contain relative z-10"
-            onClick={cycleRightImg}
-          />
+          {secretMode && (
+            <motion.img
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
+              src={ALT_IMAGES[rightImgIndex]}
+              alt="Cat Blimp Right"
+              className="w-20 h-20 cursor-pointer object-contain relative z-10"
+              onClick={cycleRightImg}
+            />
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 mx-auto max-w-2xl">
@@ -407,40 +429,44 @@ export default function App() {
             {isDarkMode ? <Sun size={18} className="text-yellow-400" /> : <Moon size={18} className="text-indigo-400" />}
           </button>
 
-          <button
-            onClick={() => setIsSnowEnabled(!isSnowEnabled)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80`}
-            style={{ backgroundColor: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)' }}
-            title={isSnowEnabled ? 'Выключить снег' : 'Включить снег'}
-          >
-            <Snowflake size={18} className={isSnowEnabled ? 'text-blue-400' : 'opacity-50'} />
-          </button>
+          {secretMode && (
+            <button
+              onClick={() => setIsSnowEnabled(!isSnowEnabled)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all hover:opacity-80`}
+              style={{ backgroundColor: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)' }}
+              title={isSnowEnabled ? 'Выключить снег' : 'Включить снег'}
+            >
+              <Snowflake size={18} className={isSnowEnabled ? 'text-blue-400' : 'opacity-50'} />
+            </button>
+          )}
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-5 py-10 text-center">
         {/* Search Section */}
-        <section className="mb-16">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Поиск..."
-              className={`w-full max-w-xl p-4 text-lg border rounded-xl outline-none transition-all duration-300 focus:ring-2 focus:ring-opacity-50`}
-              style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
-            />
-            <button
-              onClick={handleSearch}
-              className="w-full md:w-auto px-8 py-4 rounded-xl text-lg font-medium transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
-              style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-text)' }}
-            >
-              <Search size={20} />
-              Поиск
-            </button>
-          </div>
-        </section>
+        {secretMode && (
+          <section className="mb-16">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Поиск..."
+                className={`w-full max-w-xl p-4 text-lg border rounded-xl outline-none transition-all duration-300 focus:ring-2 focus:ring-opacity-50`}
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              />
+              <button
+                onClick={handleSearch}
+                className="w-full md:w-auto px-8 py-4 rounded-xl text-lg font-medium transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95"
+                style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-text)' }}
+              >
+                <Search size={20} />
+                Поиск
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* Cat Section */}
         <section className="cat-section">
