@@ -3,17 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, Palette, Copy, Check, Snowflake, Search, Cat, Sun, Moon, ExternalLink, Heart, History, X, Trash2 } from 'lucide-react';
 
-const ALT_IMAGES = [
-  `${import.meta.env.BASE_URL}assets/catblimp.gif`,
-  `${import.meta.env.BASE_URL}assets/mion.avif`,
-  `${import.meta.env.BASE_URL}assets/mion2.avif`,
-  `${import.meta.env.BASE_URL}assets/nasral.avif`,
-  `${import.meta.env.BASE_URL}assets/taa.avif`
-];
+const catblimp = `${import.meta.env.BASE_URL}assets/catblimp.gif`;
+const mion = `${import.meta.env.BASE_URL}assets/mion.avif`;
+const mion2 = `${import.meta.env.BASE_URL}assets/mion2.avif`;
+const nasral = `${import.meta.env.BASE_URL}assets/nasral.avif`;
+const taa = `${import.meta.env.BASE_URL}assets/taa.avif`;
+
+const ALT_IMAGES = [catblimp, mion, mion2, nasral, taa];
 
 type ThemePalette = {
   primary: string;
@@ -64,44 +64,40 @@ const generatePalette = (color: string, isDark: boolean): ThemePalette => {
   const lum = getLuminance(color);
   const primaryText = lum > 0.5 ? '#000000' : '#ffffff';
   
-  // Accent color for text/icons on bg/surface. Needs high contrast.
-  const accentL = isDark ? Math.max(l, 65) : Math.min(l, 40);
+  const accentL = isDark ? Math.max(l, 65) : Math.min(l, 35);
   const accent = `hsl(${h}, ${s}%, ${accentL}%)`;
-
-  // For backgrounds, we want a very desaturated version of the color
-  const bgS = Math.min(s, 25); // Cap saturation for backgrounds
 
   if (isDark) {
     return {
       primary: color,
       primaryText,
-      bg: `hsl(${h}, ${bgS}%, 7%)`,
-      surface: `hsl(${h}, ${bgS}%, 12%)`,
-      border: `hsl(${h}, ${bgS}%, 22%)`,
-      text: `hsl(${h}, ${bgS}%, 92%)`,
+      bg: `hsl(${h}, ${s * 0.3}%, 8%)`,
+      surface: `hsl(${h}, ${s * 0.3}%, 14%)`,
+      border: `hsl(${h}, ${s * 0.3}%, 22%)`,
+      text: `hsl(${h}, ${s * 0.3}%, 95%)`,
       accent
     };
   } else {
     return {
       primary: color,
       primaryText,
-      bg: `hsl(${h}, ${bgS}%, 98%)`,
-      surface: `hsl(${h}, ${bgS}%, 93%)`,
-      border: `hsl(${h}, ${bgS}%, 85%)`,
-      text: `hsl(${h}, ${bgS}%, 15%)`,
+      bg: `hsl(${h}, ${s * 0.3}%, 96%)`,
+      surface: `hsl(${h}, ${s * 0.3}%, 90%)`,
+      border: `hsl(${h}, ${s * 0.3}%, 80%)`,
+      text: `hsl(${h}, ${s * 0.3}%, 10%)`,
       accent
     };
   }
 };
 
 const THEMES_BASE = [
-  { name: 'Default', id: 'default', color: '#6366f1' },
-  { name: 'Soft Kitty', id: 'soft-kitty', color: '#f43f5e' },
-  { name: 'Lavender Purr', id: 'lavender', color: '#a855f7' },
-  { name: 'Minty Paws', id: 'mint', color: '#10b981' },
-  { name: 'Warm Latte', id: 'latte', color: '#f59e0b' },
-  { name: 'Ocean', id: 'ocean', color: '#0ea5e9' },
-  { name: 'Monochrome', id: 'mono', color: '#71717a' }
+  { name: 'Monochrome', id: 'mono', color: '#888888' },
+  { name: 'Soft Kitty', id: 'soft-kitty', color: '#e57373' },
+  { name: 'Lavender Purr', id: 'lavender', color: '#9c27b0' },
+  { name: 'Minty Paws', id: 'mint', color: '#059669' },
+  { name: 'Warm Latte', id: 'latte', color: '#8b5a2b' },
+  { name: 'Ocean', id: 'ocean', color: '#0284c7' },
+  { name: 'Classic', id: 'classic', color: '#606230' }
 ];
 
 const THEMES: Theme[] = THEMES_BASE.map(base => ({
@@ -121,10 +117,7 @@ const generateCustomTheme = (color: string): Theme => ({
 type CatRecord = { id: string; url: string; addedAt: number };
 
 export default function App() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme-mode');
-    return saved ? saved === 'dark' : true;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme-mode') !== 'light');
   const [customColor, setCustomColor] = useState(() => localStorage.getItem('custom-color') || '#a855f7');
   const [currentTheme, setCurrentTheme] = useState<Theme>(THEMES[0]);
   const [isSnowEnabled, setIsSnowEnabled] = useState(false);
@@ -165,7 +158,7 @@ export default function App() {
     setSnowflakes(initialSnowflakes);
   }, []);
 
-  const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomColorChange = (e: ChangeEvent<HTMLInputElement>) => {
     const color = e.target.value;
     setCustomColor(color);
     localStorage.setItem('custom-color', color);
@@ -343,7 +336,6 @@ export default function App() {
             alt="Cat Blimp Left"
             className="w-20 h-20 cursor-pointer object-contain relative z-10"
             onClick={cycleLeftImg}
-            referrerPolicy="no-referrer"
           />
           <div className="relative">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight drop-shadow-lg relative z-10" style={{ color: 'var(--accent)' }}>
@@ -356,11 +348,11 @@ export default function App() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm px-4 py-2 rounded-full shadow-xl z-20 pointer-events-none"
+                  className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs px-3 py-1.5 rounded-full shadow-lg z-20 pointer-events-none"
                   style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-text)' }}
                 >
                   Попробуй нажать на картинки по бокам! ✨
-                  <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45" style={{ backgroundColor: 'var(--primary)' }}></div>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45" style={{ backgroundColor: 'var(--primary)' }}></div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -372,7 +364,6 @@ export default function App() {
             alt="Cat Blimp Right"
             className="w-20 h-20 cursor-pointer object-contain relative z-10"
             onClick={cycleRightImg}
-            referrerPolicy="no-referrer"
           />
         </div>
 
